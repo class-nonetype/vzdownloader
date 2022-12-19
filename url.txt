@@ -1,0 +1,9 @@
+[ ! ]   Ejecutables             https://drive.google.com/drive/folders/10I3b_UiyLHgeXUDkK74SQVFctZc-ze2G?usp=share_link
+
+                                +-------------------------------------------------------------------------------------+
+                                |    IMPORTANTE                                                                       |
+                                +-------------------------------------------------------------------------------------+
+                                |                                                                                     |
+                                |    Arrastrar los 3 archivos ejecutables en el directorio del main.py                |
+                                |                                                                                     |
+                                +-------------------------------------------------------------------------------------+
