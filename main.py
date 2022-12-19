@@ -1387,16 +1387,20 @@ class Controller:
                         url = url, download = False
                     )
 
-                    self.Model.download_file_name = video['title'] + '.mp4'
 
-                    file_path = str(directory + '/' + self.Model.download_file_name)
+                    for obj in os.scandir(self.Model.download_directory_path):
+                        print(obj.path)
 
-                    self.Model.download_file_path = file_path
+                    #self.Model.download_file_name = video['title'] + '.mp4'
+
+                    #file_path = str(directory + '/' + self.Model.download_file_name)
+
+                    #self.Model.download_file_path = file_path
 
                     options = {
                         'format' : 'bestvideo[ext=mp4]+bestaudio[ext=m4a]',
                         'progress_hooks': [self.download_percent],
-                        'outtmpl'   : f'{file_path}',
+                        #'outtmpl'   : f'{file_path}',
                         'quiet' : True,
                         'external_downloader_args': ['-loglevel', 'panic', '--verbose']
 
@@ -1410,7 +1414,8 @@ class Controller:
                     return self.View.get_message_view(
                         status = QtWidgets.QMessageBox.Information,
                         title = 'Descarga finalizada',
-                        message = f'Se ha descargado correctamente el archivo en la ruta:\n{file_path}\n'
+                        message = f'Se ha descargado correctamente el archivo en la ruta:\n'
+                        #message = f'Se ha descargado correctamente el archivo en la ruta:\n{file_path}\n'
                     )
                 
                 except Exception as exc:
@@ -1419,7 +1424,6 @@ class Controller:
                         title = 'Descarga interrumpida',
                         message = f'Se ha interrumpido la descarga\n{exc}\n'
                     )
-        QtWidgets.QApplication.processEvents()
 
 
 
