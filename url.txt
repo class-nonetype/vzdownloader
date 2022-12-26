@@ -4,6 +4,6 @@
                                 |    IMPORTANTE                                                                       |
                                 +-------------------------------------------------------------------------------------+
                                 |                                                                                     |
-                                |    Arrastrar los 3 archivos ejecutables en el directorio del main.py                |
+                                |    Adjuntar los 3 archivos ejecutables en el directorio del main.py                 |
                                 |                                                                                     |
                                 +-------------------------------------------------------------------------------------+

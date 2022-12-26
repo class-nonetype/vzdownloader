@@ -2,35 +2,24 @@
 
 import sys
 
-from PyQt5.QtWidgets import QApplication                                                                                                                                                                                                                                                                                                                                                                                                                                               
-
-
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
-from PyQt5.QtWidgets import *
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import Qt
 
-from PyQt5.QtWidgets import qApp
+from PyQt5.QtWidgets import (qApp, QApplication)
 
-
-
-from PyQt5 import QtCore
-from PyQt5.QtCore import (
-    Qt
-
-)
 import platform
-
 import time
 import os
+
 try:
     import youtube_dl
 
 except:
     os.system('pip install youtube_dl')
+
+finally:
+    import youtube_dl
 
 
 ##########################################################################################################################################################
@@ -86,7 +75,7 @@ class Model:
 class MessageView(QtWidgets.QMessageBox):
 
     def __init__(self):
-        QMessageBox.__init__(self)
+        QtWidgets.QMessageBox.__init__(self)
 
         self.setWindowFlags(Qt.Window | Qt.FramelessWindowHint)
 
@@ -1591,8 +1580,8 @@ def main():
     try:
         attr = {
             'controller' : Controller(),
-            'model' : Controller().Model,
-            'view' : Controller().View
+            'model'      : Controller().Model,
+            'view'       : Controller().View
         }
         attr['controller'].get_main_window_view()
 
@@ -1600,8 +1589,6 @@ def main():
 
     except Exception as exc:
         print(exc)
-
-
 
 if __name__ == '__main__':
     main()
