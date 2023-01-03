@@ -1,28 +1,35 @@
 # -*- coding: utf-8 -*-
 
+EXCEPTIONS = []
+
+
 import sys
 
 
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import Qt
-
+from PyQt5 import (QtCore, QtGui, QtWidgets)
+from PyQt5.QtCore import (Qt)
 from PyQt5.QtWidgets import (qApp, QApplication)
 
 import platform
 import time
 import os
+import getpass
 
 try:
     import youtube_dl
 
 except:
-    os.system('pip install youtube_dl')
+
+    if platform.system() == 'Windows':
+        os.system('python -m pip install youtube_dl')
+    
+    elif platform.system() == 'Linux':
+        os.system('python3 -m pip install youtube_dl')
 
 finally:
     import youtube_dl
 
 
-##########################################################################################################################################################
 
 ###########################################################################
 #                                                                         #
@@ -30,31 +37,34 @@ finally:
 #                                                                         #
 ###########################################################################
 
-
 class Model:
 
-    def __init__(self) -> None:
-        
-        self.download_directory_path = str(None)
-        self.download_file_path = str(None)
+    def __init__(self):
 
-        self.download_file_name = str(None)
-        self.downloads = []
 
-        self.platform_system = platform.system()
-
-        self.system = {
-            'os' : platform.system(),
-            'system' : platform.system(),
-            'version' : platform.version(),
-            'processor' : platform.processor(),
-            'node' : platform.node(),
-            'machine' : platform.machine(),
-            'architecture' : platform.architecture(),
-            'platform' : platform.platform()
+        self.attributes = {
+            'system'        : {
+                'user'          : getpass.getuser(),
+                'os'            : platform.system(),
+                'system'        : platform.system(),
+                'version'       : platform.version(),
+                'processor'     : platform.processor(),
+                'node'          : platform.node(),
+                'machine'       : platform.machine(),
+                'architecture'  : platform.architecture(),
+                'platform'      : platform.platform()
+            },
+            'download'      : {
+                'path' : {
+                    'download_directory'    : str(None),
+                    'download_file'         : str(None)
+                },
+                'file' : {
+                    'name'                  : str(None)
+                }
+            },
+            'downloads'     : []
         }
-
-
 
 
 
@@ -65,10 +75,6 @@ class Model:
 #                                  Vista                                  #
 #                                                                         #
 ###########################################################################
-
-
-
-
 
 
 
@@ -91,9 +97,9 @@ class MessageView(QtWidgets.QMessageBox):
             if event.buttons() and Qt.LeftButton:
                 self.move(event.globalPos()-self.m_DragPosition)
                 event.accept()
-        except AttributeError:
+        except AttributeError as exc:
+            EXCEPTIONS.append(exc)
             pass
-
 
     def mouseReleaseEvent(self, event):
         self.m_drag = False
@@ -182,7 +188,6 @@ class SideGrip(QtWidgets.QWidget):
 
     def __init__(self, parent, edge):
         QtWidgets.QWidget.__init__(self, parent)
-
 
         self.WidgetSideGrip = QtWidgets.QWidget(self)
         self.WidgetSideGrip.setObjectName('WidgetSideGrip')
@@ -340,7 +345,8 @@ class MainView(QtWidgets.QMainWindow):
             if event.buttons() and Qt.LeftButton:
                 self.move(event.globalPos()-self.m_DragPosition)
                 event.accept()
-        except AttributeError:
+        except AttributeError as exc:
+            EXCEPTIONS.append(exc)
             pass
 
     def mouseReleaseEvent(self, event):
@@ -1256,6 +1262,7 @@ class View:
 
         except Exception as exc:
             # Logger
+            EXCEPTIONS.append(exc)
             pass
 
 
@@ -1309,19 +1316,24 @@ class Controller:
             if directory:
                 #self.View.MainView.lineEditDownloadPath.setText(directory)
 
-                self.Model.download_directory_path = directory
+                self.Model.attributes['download']['path']['download_directory'] = directory
 
                 try:
                     video = youtube_dl.YoutubeDL().extract_info(
                         url = url, download = False
                     )
 
-                    self.Model.download_file_name = video['title'] + '.mp3'
+                    self.Model.attributes['download']['file']['name'] = video['title'] + '.mp3'
             
-                    file_path = self.Model.download_directory_path + '\\' + self.Model.download_file_name
+                    file_path =\
+                        str(
+                            self.Model.attributes['download']['path']['download_directory'] +
+                            '\\' +
+                            self.Model.attributes['download']['file']['name']
+                        )
                     file_path = str(file_path).replace('/', '\\')
 
-                    self.Model.download_file_path = file_path
+                    self.Model.attributes['download']['path']['download_file'] = file_path
 
 
                     options = {
@@ -1352,6 +1364,7 @@ class Controller:
                     )
                 
                 except Exception as exc:
+                    EXCEPTIONS.append(exc)
                     return self.View.get_message_view(
                         status = QtWidgets.QMessageBox.Critical,
                         title = 'Descarga interrumpida',
@@ -1367,9 +1380,7 @@ class Controller:
             )
 
             if directory:
-                #self.View.MainView.lineEditDownloadPath.setText(directory)
-
-                self.Model.download_directory_path = directory
+                self.Model.attributes['download']['path']['download_directory'] = directory
 
                 try:
                     video = youtube_dl.YoutubeDL().extract_info(
@@ -1377,7 +1388,7 @@ class Controller:
                     )
 
 
-                    for obj in os.scandir(self.Model.download_directory_path):
+                    for obj in os.scandir(self.Model.attributes['download']['path']['download_directory']):
                         print(obj.path)
 
                     #self.Model.download_file_name = video['title'] + '.mp4'
@@ -1408,13 +1419,12 @@ class Controller:
                     )
                 
                 except Exception as exc:
+                    EXCEPTIONS.append(exc)
                     return self.View.get_message_view(
                         status = QtWidgets.QMessageBox.Critical,
                         title = 'Descarga interrumpida',
                         message = f'Se ha interrumpido la descarga\n{exc}\n'
                     )
-
-
 
     def download_percent(self, download):
         
@@ -1429,16 +1439,18 @@ class Controller:
                     f'''{download['_speed_str']} de {download['_total_bytes_str']}'''
                 )
                 self.View.MainView.labelDirectory.setText(
-                    f'''{self.Model.download_directory_path}'''
+                    f'''{self.Model.attributes['download']['path']['download_directory']}'''
                 )
                 self.View.MainView.labelTitle.setText(
-                    f'''{self.Model.download_file_name}'''
+                    f'''{self.Model.attributes['download']['file']['name']}'''
                 )
 
                 download_percent = int(float(percent))
                 self.View.MainView.progressBarDownload.setValue(int(download_percent))
                 self.View.MainView.progressBarDownload.setFormat('%.02f%%' % (float(percent)))
-            except:
+            except Exception as exc:
+                
+                EXCEPTIONS.append(exc)
                 pass
             
             QtWidgets.QApplication.processEvents()
@@ -1453,16 +1465,15 @@ class Controller:
             self.View.MainView.progressBarDownload.setFormat('%.02f%%' % (float(0)))
 
 
-            self.Model.download_directory_path = str(self.Model.download_directory_path).replace('/', '\\')
+            self.Model.attributes['download']['path']['download_directory'] = str(self.Model.attributes['download']['path']['download_directory']).replace('/', '\\')
 
-
-            self.Model.downloads.append(
+            self.Model.attributes['downloads'].append(
                 [
-                    time.ctime(os.path.getmtime(self.Model.download_file_path)),
-                    self.Model.download_directory_path,
-                    self.Model.download_file_name,
-                    self.Model.download_file_path,
-                    f'{int(float(os.path.getsize(self.Model.download_file_path) / 1024))}MB'
+                    time.ctime(os.path.getmtime(self.Model.attributes['download']['path']['download_file'])),
+                    self.Model.attributes['download']['path']['download_directory'],
+                    self.Model.attributes['download']['file']['name'],
+                    self.Model.attributes['download']['path']['download_file'],
+                    f'''{int(float(os.path.getsize(self.Model.attributes['download']['path']['download_file']) / 1024))}MB'''
                 ]
             )
 
@@ -1479,11 +1490,17 @@ class Controller:
             self.View.MainView.tableWidgetDownloads.setColumnCount(len(header))
             self.View.MainView.tableWidgetDownloads.setHorizontalHeaderLabels(header)
 
-            self.View.MainView.tableWidgetDownloads.setRowCount(len(self.Model.downloads))
+            self.View.MainView.tableWidgetDownloads.setRowCount(len(self.Model.attributes['downloads']))
 
-            for row in range(len(self.Model.downloads)):
+            for row in range(len(self.Model.attributes['downloads'])):
                 for column in range(len(header)):
-                    self.View.MainView.tableWidgetDownloads.setItem(row, column, QtWidgets.QTableWidgetItem(str(self.Model.downloads[row][column])))
+                    self.View.MainView.tableWidgetDownloads.setItem(
+                        row, column, QtWidgets.QTableWidgetItem(
+                            str(
+                                self.Model.attributes['downloads'][row][column]
+                            )
+                        )
+                    )
                     self.View.MainView.tableWidgetDownloads.horizontalHeader().setSectionResizeMode(column, QtWidgets.QHeaderView.ResizeToContents)
             self.View.MainView.tableWidgetDownloads.cellClicked.connect(self.clicked_cell)
             self.View.MainView.tableWidgetDownloads.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
@@ -1496,7 +1513,8 @@ class Controller:
             if column == 1 or column == 3:
                 os.startfile(f'''{item.text()}''')
         
-        except:
+        except Exception as exc:
+            EXCEPTIONS.append(exc)
             pass
 
     def main_window_restore(self):
@@ -1542,40 +1560,18 @@ class Controller:
 
 
 
-##########################################################################################################################################################
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-##########################################################################################################################################################
-##########################################################################################################################################################
 
 
 #   Main function
 def main():
     qApp = QApplication(sys.argv)
+
+    
 
     try:
         attr = {
@@ -1588,11 +1584,8 @@ def main():
         return qApp.exec_()
 
     except Exception as exc:
-        print(exc)
-
+        EXCEPTIONS.append(
+            exc
+        )
 if __name__ == '__main__':
     main()
-
-
-##########################################################################################################################################################
-##########################################################################################################################################################
